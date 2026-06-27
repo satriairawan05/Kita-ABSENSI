@@ -11,12 +11,12 @@
 </head>
 <body id="home" x-data="detailApp()" x-init="init()">
 
-    <!-- ═══ FLOATING HOME ═══ -->
+    <!-- Floating Home -->
     <button class="btn-floating-home" @click="goHome()" aria-label="Go Home">
         <i class="bi bi-house-door-fill"></i>
     </button>
 
-    <!-- ═══ MAIN APP ═══ -->
+    <!-- MAIN APP -->
     <div class="container-fluid d-flex align-items-start justify-content-center min-vh-100 bg-light-maroon p-3 p-md-4 p-lg-5">
         <div class="row w-100 justify-content-center">
             <div class="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-7 col-xxl-6">
@@ -38,11 +38,14 @@
 
                     <!-- Body -->
                     <main class="app-body p-3 p-sm-4 p-md-5">
-                        <div x-show="loading" class="text-center py-4">
+
+                        <!-- Loading -->
+                        <div x-show="loading" class="text-center py-5">
                             <div class="spinner-border" style="color: #7a2a3a;" role="status"></div>
-                            <p class="mt-2">Loading...</p>
+                            <p class="mt-3 text-secondary">Loading employee data...</p>
                         </div>
 
+                        <!-- Detail Employee -->
                         <div x-show="!loading && employee">
                             <h4 class="fw-bold" style="color: #7a2a3a;" x-text="employee.nama"></h4>
                             <p class="text-secondary">
@@ -51,49 +54,70 @@
                                 <i class="bi bi-clock-history me-1"></i> <strong>Shift:</strong> <span x-text="employee.shift_name"></span>
                                 &nbsp;|&nbsp;
                                 <i class="bi bi-calendar-check me-1"></i> <strong>Total Presence:</strong> <span x-text="employee.total_absen"></span>
+                                &nbsp;|&nbsp;
+                                <i class="bi bi-flag me-1"></i> <strong>Last Status:</strong>
+                                <span class="badge" :class="getBadgeClass(employee.status)" x-text="getStatusLabel(employee.status)"></span>
                             </p>
                             <hr style="border-color: #dcc8c8;" />
 
-                            <h6 class="fw-bold" style="color: #7a2a3a;"><i class="bi bi-calendar-event me-2"></i> Presence History</h6>
-                            <div class="table-responsive">
-                                <table class="table table-bordered table-hover align-middle">
-                                    <thead class="table-maroon">
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Date</th>
-                                            <th>Shift</th>
-                                            <th>Check In</th>
-                                            <th>Check Out</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <template x-if="employee.history.length === 0">
-                                            <tr>
-                                                <td colspan="6" class="text-center text-secondary">No history available</td>
-                                            </tr>
-                                        </template>
-                                        <template x-for="(log, idx) in employee.history" :key="idx">
-                                            <tr :class="getRowClass(log.status)">
-                                                <td x-text="idx + 1"></td>
-                                                <td x-text="log.date_formatted"></td>
-                                                <td x-text="log.shift"></td>
-                                                <td x-text="log.check_in || '-'"></td>
-                                                <td x-text="log.check_out || '-'"></td>
-                                                <td>
-                                                    <span class="badge" :class="getBadgeClass(log.status)" x-text="getStatusLabel(log.status)"></span>
-                                                </td>
-                                            </tr>
-                                        </template>
-                                    </tbody>
-                                </table>
+                            <h6 class="fw-bold" style="color: #7a2a3a;"><i class="bi bi-calendar-event me-2"></i> Presence Calendar</h6>
+
+                            <!-- ═══ CALENDAR ═══ -->
+                            <div class="calendar-wrapper mt-3">
+                                <!-- Navigasi dengan disabled state -->
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <button class="btn btn-outline-maroon rounded-pill px-3" 
+                                            @click="prevMonth" 
+                                            :disabled="!canPrev">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <span class="fw-bold fs-5" style="color: #7a2a3a;" x-text="currentMonthYear"></span>
+                                    <button class="btn btn-outline-maroon rounded-pill px-3" 
+                                            @click="nextMonth" 
+                                            :disabled="!canNext">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Grid Kalender -->
+                                <div class="calendar-header-grid">
+                                    <div class="col">Sun</div>
+                                    <div class="col">Mon</div>
+                                    <div class="col">Tue</div>
+                                    <div class="col">Wed</div>
+                                    <div class="col">Thu</div>
+                                    <div class="col">Fri</div>
+                                    <div class="col">Sat</div>
+                                </div>
+
+                                <div class="calendar-body-grid">
+                                    <template x-for="(day, index) in calendarDays" :key="index">
+                                        <div class="calendar-day-cell" :class="getDayClass(day)" x-show="day">
+                                            <span class="day-number" x-text="day.date"></span>
+                                        </div>
+                                        <div class="calendar-day-cell bg-calendar-no-data d-flex align-items-center justify-content-center"
+                                             x-show="!day" style="opacity: 0.3;">
+                                            <span class="day-number text-secondary" style="font-size:0.7rem;">&nbsp;</span>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <!-- Legend -->
+                                <div class="mt-3 d-flex flex-wrap gap-3 justify-content-center">
+                                    <span class="badge bg-success p-2">🟢 On Time</span>
+                                    <span class="badge bg-warning text-dark p-2">🟡 Late 5-15</span>
+                                    <span class="badge bg-danger p-2">🔴 Late 30-60</span>
+                                    <span class="badge bg-secondary bg-opacity-25 text-secondary p-2">⚪ No Data</span>
+                                </div>
                             </div>
                         </div>
 
+                        <!-- Not Found -->
                         <div x-show="!loading && !employee" class="alert alert-warning rounded-4 text-center">
                             <i class="bi bi-exclamation-triangle me-2"></i> Employee not found.
                         </div>
 
+                        <!-- Back -->
                         <div class="mt-3 text-center">
                             <a href="rekap.html" class="btn btn-outline-maroon rounded-pill px-4">
                                 <i class="bi bi-arrow-left me-2"></i> Back to Recap
@@ -111,7 +135,7 @@
         </div>
     </div>
 
-    <!-- ═══ TOAST MODAL ═══ -->
+    <!-- Toast Modal -->
     <div class="modal fade" id="toastModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4" style="border: 2px solid #7a2a3a;">

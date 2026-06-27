@@ -17,13 +17,25 @@ document.addEventListener('alpine:init', () => {
         return `${newH}:${newM}`;
     }
 
-    function generateHistory() {
+    // ─── GENERATE HISTORY UNTUK 1 KARYAWAN ────────────────────────────
+    // Data dibuat otomatis dari 20 Mei 2026 sampai hari ini (atau 27 Juni jika hari ini > 27 Juni)
+
+    function generateHistoryForEmployee() {
         const history = [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Batas akhir: minimal 27 Juni, atau hari ini jika lebih kecil
+        let endDate = new Date(2026, 5, 27); // 27 Juni 2026
+        if (today < endDate) {
+            endDate = new Date(today);
+        }
 
         // Periode 1: 20 Mei – 8 Juni, Shift Sore di Raja Kepiting (16:00 - 00:00)
-        let current = new Date(2026, 4, 20);
-        const end1 = new Date(2026, 5, 8);
-        while (current <= end1) {
+        let start = new Date(2026, 4, 20);
+        let end = new Date(2026, 5, 8);
+        let current = new Date(start);
+        while (current <= end) {
             const dateStr = current.toISOString().split('T')[0];
             const lateMin = Math.floor(Math.random() * 45);
             let status = 'on-time';
@@ -33,6 +45,8 @@ document.addEventListener('alpine:init', () => {
                 date: dateStr,
                 date_formatted: formatDate(dateStr),
                 shift: 'Sore',
+                shift_start: '16:00',
+                shift_end: '00:00',
                 check_in: addMinutes('16:00', lateMin),
                 check_out: addMinutes('00:00', lateMin),
                 status: status
@@ -40,10 +54,11 @@ document.addEventListener('alpine:init', () => {
             current.setDate(current.getDate() + 1);
         }
 
-        // Periode 2: 10 Juni – 27 Juni, Shift Sore di My Fried Chicken (15:00 - 23:00)
-        current = new Date(2026, 5, 10);
-        const end2 = new Date(2026, 5, 27);
-        while (current <= end2) {
+        // Periode 2: 10 Juni – endDate, Shift Sore di My Fried Chicken (15:00 - 23:00)
+        start = new Date(2026, 5, 10);
+        end = endDate;
+        current = new Date(start);
+        while (current <= end) {
             const dateStr = current.toISOString().split('T')[0];
             const lateMin = Math.floor(Math.random() * 45);
             let status = 'on-time';
@@ -53,6 +68,8 @@ document.addEventListener('alpine:init', () => {
                 date: dateStr,
                 date_formatted: formatDate(dateStr),
                 shift: 'Sore',
+                shift_start: '15:00',
+                shift_end: '23:00',
                 check_in: addMinutes('15:00', lateMin),
                 check_out: addMinutes('23:00', lateMin),
                 status: status
@@ -64,16 +81,21 @@ document.addEventListener('alpine:init', () => {
         return history;
     }
 
-    // ─── DATA DUMMY ──────────────────────────────────────────────────────
+    // ─── DATA DUMMY DENGAN STATUS TERAKHIR DARI HISTORY ──────────────
 
-    const dummyEmployee = {
-        id: 1,
-        nama: 'Deuwi Satriya Irawan',
-        outlet_id: 1,
-        shift_id: 2,
-        total_absen: 38,
-        status: 'on-time'
-    };
+    function getDummyEmployee() {
+        const history = generateHistoryForEmployee();
+        const lastLog = history.length > 0 ? history[history.length - 1] : null;
+        return {
+            id: 1,
+            nama: 'Deuwi Satriya Irawan',
+            outlet_id: 1,
+            shift_id: 2,
+            total_absen: history.length,
+            status: lastLog ? lastLog.status : 'on-time',
+            history: history
+        };
+    }
 
     // ─── COMPONENT: PRESENCE APP ──────────────────────────────────────
 
@@ -160,7 +182,6 @@ document.addEventListener('alpine:init', () => {
             event.target.value = '';
         },
 
-        // ── PERBAIKAN: showPresenceModal dengan try-catch & fallback ──
         showPresenceModal(icon, title, message, late = false, lateMsg = '', photo = null) {
             this.modalIcon = icon || '✅';
             this.modalTitle = title || 'Presence Result';
@@ -275,7 +296,6 @@ document.addEventListener('alpine:init', () => {
             }
         },
 
-        // ── PERBAIKAN: goHome menggunakan window.location.assign ──
         goHome() {
             window.location.assign('index.html');
         }
@@ -299,12 +319,12 @@ document.addEventListener('alpine:init', () => {
         selectedOutletId: null,
         selectedShiftId: null,
         filteredData: [],
-        allData: [dummyEmployee],
+        allData: [],
 
         init() {
             this.updateClock();
             this.clockInterval = setInterval(() => this.updateClock(), 1000);
-            this.applyFilter();
+            this.loadData();
         },
 
         updateClock() {
@@ -312,6 +332,19 @@ document.addEventListener('alpine:init', () => {
             this.currentTime = String(now.getHours()).padStart(2, '0') + ':' +
                 String(now.getMinutes()).padStart(2, '0') + ':' +
                 String(now.getSeconds()).padStart(2, '0');
+        },
+
+        loadData() {
+            const emp = getDummyEmployee();
+            this.allData = [{
+                id: emp.id,
+                nama: emp.nama,
+                outlet_id: emp.outlet_id,
+                shift_id: emp.shift_id,
+                total_absen: emp.total_absen,
+                status: emp.status
+            }];
+            this.applyFilter();
         },
 
         applyFilter() {
@@ -388,7 +421,28 @@ document.addEventListener('alpine:init', () => {
             { id: 2, name: 'Sore' },
             { id: 3, name: 'Malam' }
         ],
-        allEmployees: [dummyEmployee],
+
+        // State Kalender
+        currentDate: null,
+        calendarDays: [],
+        dayStatusMap: {},
+        minDate: null,
+        maxDate: null,
+
+        // ── Computed untuk navigasi ──
+        get canPrev() {
+            if (!this.currentDate || !this.minDate) return false;
+            const currentMonth = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
+            const minMonth = new Date(this.minDate.getFullYear(), this.minDate.getMonth(), 1);
+            return currentMonth > minMonth;
+        },
+
+        get canNext() {
+            if (!this.currentDate || !this.maxDate) return false;
+            const currentMonth = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
+            const maxMonth = new Date(this.maxDate.getFullYear(), this.maxDate.getMonth(), 1);
+            return currentMonth < maxMonth;
+        },
 
         init() {
             this.updateClock();
@@ -420,32 +474,119 @@ document.addEventListener('alpine:init', () => {
 
         loadDetail() {
             this.loading = true;
-            const emp = this.allEmployees.find(e => e.id === this.employeeId);
-            if (!emp) {
+            const empData = getDummyEmployee();
+
+            if (empData.id !== this.employeeId) {
                 this.loading = false;
                 this.employee = null;
                 return;
             }
 
-            const history = generateHistory();
-            const outlet = this.outlets.find(o => o.id === emp.outlet_id);
-            const shift = this.shifts.find(s => s.id === emp.shift_id);
+            const outlet = this.outlets.find(o => o.id === empData.outlet_id);
+            const shift = this.shifts.find(s => s.id === empData.shift_id);
 
             this.employee = {
-                ...emp,
+                ...empData,
                 outlet_name: outlet ? outlet.name : 'Unknown',
-                shift_name: shift ? shift.name : 'Unknown',
-                history: history
+                shift_name: shift ? shift.name : 'Unknown'
             };
 
-            setTimeout(() => { this.loading = false; }, 400);
+            // Tentukan batas bulan dari data history
+            const history = empData.history;
+            if (history.length > 0) {
+                const firstDate = new Date(history[0].date);
+                const lastDate = new Date(history[history.length - 1].date);
+                this.minDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+                this.maxDate = new Date(lastDate.getFullYear(), lastDate.getMonth(), 1);
+            } else {
+                // Fallback jika tidak ada data
+                this.minDate = new Date(2026, 4, 1);
+                this.maxDate = new Date(2026, 5, 1);
+            }
+
+            // Build map status
+            this.dayStatusMap = {};
+            empData.history.forEach(log => {
+                this.dayStatusMap[log.date] = log.status;
+            });
+
+            // Set currentDate ke bulan pertama data
+            if (!this.currentDate || this.currentDate < this.minDate) {
+                this.currentDate = new Date(this.minDate);
+            }
+
+            this.renderCalendar();
+            this.loading = false;
         },
 
-        getRowClass(status) {
-            if (status === 'on-time') return 'table-success';
-            if (status === 'late-5-15') return 'table-warning';
-            if (status === 'late-30-60') return 'table-danger';
-            return '';
+        renderCalendar() {
+            if (!this.currentDate) return;
+
+            const year = this.currentDate.getFullYear();
+            const month = this.currentDate.getMonth();
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const days = [];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // Empty days before month starts
+            for (let i = 0; i < firstDay; i++) {
+                days.push(null);
+            }
+
+            // Days of the month
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateObj = new Date(year, month, d);
+                const dateStr = dateObj.toISOString().split('T')[0];
+                const status = this.dayStatusMap[dateStr] || null;
+                const isPast = dateObj <= today;
+
+                days.push({
+                    date: d,
+                    dateStr: dateStr,
+                    status: isPast ? status : null,
+                    isToday: dateObj.toDateString() === today.toDateString(),
+                    isPast: isPast
+                });
+            }
+
+            this.calendarDays = days;
+        },
+
+        // ── Navigasi Bulan ──
+        prevMonth() {
+            if (!this.canPrev) return;
+            const newDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() - 1, 1);
+            this.currentDate = newDate;
+            this.renderCalendar();
+        },
+
+        nextMonth() {
+            if (!this.canNext) return;
+            const newDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 1);
+            this.currentDate = newDate;
+            this.renderCalendar();
+        },
+
+        get currentMonthYear() {
+            if (!this.currentDate) return '';
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                            'July', 'August', 'September', 'October', 'November', 'December'];
+            return `${months[this.currentDate.getMonth()]} ${this.currentDate.getFullYear()}`;
+        },
+
+        // ── Styling ──
+        getDayClass(day) {
+            if (!day) return '';
+            if (!day.isPast) return 'future-date';
+            if (!day.status) return 'bg-calendar-no-data';
+            if (day.status === 'on-time') return 'bg-calendar-on-time';
+            if (day.status === 'late-5-15') return 'bg-calendar-late-5-15';
+            if (day.status === 'late-30-60') return 'bg-calendar-late-30-60';
+            return 'bg-calendar-no-data';
         },
 
         getBadgeClass(status) {
@@ -457,8 +598,8 @@ document.addEventListener('alpine:init', () => {
 
         getStatusLabel(status) {
             if (status === 'on-time') return 'On Time';
-            if (status === 'late-5-15') return 'Late 5-15 min';
-            if (status === 'late-30-60') return 'Late 30-60 min';
+            if (status === 'late-5-15') return 'Late 5-15';
+            if (status === 'late-30-60') return 'Late 30-60';
             return '-';
         },
 
