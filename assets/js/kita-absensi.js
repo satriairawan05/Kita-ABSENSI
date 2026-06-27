@@ -58,8 +58,7 @@ document.addEventListener('alpine:init', () => {
         while (current <= end) {
             const dateStr = current.toISOString().split('T')[0];
 
-            // ═══ TANGGAL 22 JUNI 2026 = OFF ═══
-            const isOff = (dateStr === '2026-06-21');
+            const isOff = (dateStr === '2026-06-20');
 
             if (!isOff) {
                 const lateMin = Math.floor(Math.random() * 45);
