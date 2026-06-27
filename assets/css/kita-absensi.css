@@ -10,6 +10,11 @@ body {
     background-color: #f5ecec;
 }
 
+.app-body {
+    position: relative;
+    z-index: 1;
+}
+
 /* ── Container ── */
 .app-container {
     max-width: 100%;
@@ -171,6 +176,7 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
     z-index: 1050;
     cursor: pointer;
+    z-index: 9999 !important;
 }
 .btn-floating-home:hover {
     transform: scale(1.08);

@@ -9,7 +9,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="assets/css/kita-absensi.css" />
 </head>
-<body>
+<body id="home" x-data="detailApp()" x-init="init()">
 
     <!-- ═══ FLOATING HOME ═══ -->
     <button class="btn-floating-home" @click="goHome()" aria-label="Go Home">
@@ -17,8 +17,7 @@
     </button>
 
     <!-- ═══ MAIN APP ═══ -->
-    <div x-data="detailApp()" x-init="init()" 
-         class="container-fluid d-flex align-items-start justify-content-center min-vh-100 bg-light-maroon p-3 p-md-4 p-lg-5">
+    <div class="container-fluid d-flex align-items-start justify-content-center min-vh-100 bg-light-maroon p-3 p-md-4 p-lg-5">
         <div class="row w-100 justify-content-center">
             <div class="col-12 col-sm-10 col-md-9 col-lg-8 col-xl-7 col-xxl-6">
                 <div class="app-container p-0 shadow-lg rounded-4 bg-white overflow-hidden">

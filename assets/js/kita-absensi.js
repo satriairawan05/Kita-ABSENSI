@@ -137,8 +137,8 @@ document.addEventListener('alpine:init', () => {
         updateClock() {
             const now = new Date();
             this.currentTime = String(now.getHours()).padStart(2, '0') + ':' +
-                               String(now.getMinutes()).padStart(2, '0') + ':' +
-                               String(now.getSeconds()).padStart(2, '0');
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
         },
 
         onOutletChange() {
@@ -160,16 +160,31 @@ document.addEventListener('alpine:init', () => {
             event.target.value = '';
         },
 
+        // ── PERBAIKAN: showPresenceModal dengan try-catch & fallback ──
         showPresenceModal(icon, title, message, late = false, lateMsg = '', photo = null) {
-            this.modalIcon = icon;
-            this.modalTitle = title;
-            this.modalMessage = message;
+            this.modalIcon = icon || '✅';
+            this.modalTitle = title || 'Presence Result';
+            this.modalMessage = message || 'Thank you for your presence!';
             this.modalLate = late;
-            this.modalLateMessage = lateMsg;
+            this.modalLateMessage = lateMsg || '';
             this.modalPhoto = photo !== null;
             this.modalPhotoPreview = photo;
+
             const el = document.getElementById('presenceModal');
-            if (el) new bootstrap.Modal(el).show();
+            if (el) {
+                try {
+                    const existing = bootstrap.Modal.getInstance(el);
+                    if (existing) existing.dispose();
+                    const modal = new bootstrap.Modal(el);
+                    modal.show();
+                } catch (e) {
+                    console.warn('Modal error:', e);
+                    alert(message);
+                }
+            } else {
+                console.error('presenceModal not found');
+                alert(message);
+            }
         },
 
         showToast(message) {
@@ -198,7 +213,7 @@ document.addEventListener('alpine:init', () => {
                 const outlet = this.outlets.find(o => o.id === this.selectedOutletId);
                 const shift = this.shifts.find(s => s.id === this.selectedShiftId);
                 if (!outlet || !shift) {
-                    this.showPresenceModal('❌', 'Error', 'Outlet or shift not found.');
+                    this.showPresenceModal('❌', 'Error', 'Outlet or Shift not found.');
                     this.isSubmitting = false;
                     return;
                 }
@@ -209,27 +224,42 @@ document.addEventListener('alpine:init', () => {
                 const nowMin = now.getHours() * 60 + now.getMinutes();
 
                 let lateMin = 0, isLate = false, lateType = '';
+
                 if (this.presenceType === 'masuk') {
                     const diff = nowMin - start;
-                    if (diff > 15) { isLate = true; lateMin = Math.floor(diff); lateType = 'check-in'; }
+                    if (diff > 15) {
+                        isLate = true;
+                        lateMin = Math.floor(diff);
+                        lateType = 'Check In';
+                    }
                 } else {
                     const diff = nowMin - end;
-                    if (diff > 30) { isLate = true; lateMin = Math.floor(diff); lateType = 'check-out'; }
+                    if (diff > 30) {
+                        isLate = true;
+                        lateMin = Math.floor(diff);
+                        lateType = 'Check Out';
+                    }
                 }
 
                 const label = this.presenceType === 'masuk' ? 'Check In' : 'Check Out';
-                let msg = `Thank you for your presence, ${this.name.trim()}! 🙏\n`;
-                msg += isLate
-                    ? `⚠️ You were late for ${lateType} by ${lateMin} minute(s).\nPlease be more punctual in the future. ⏰`
-                    : `✅ You are on time for ${label}. Great job!\nKeep up the good work! 💪`;
+
+                let msg = `Hello ${this.name.trim()}, your ${label} has been successfully recorded! 🙏\n\n`;
+                msg += `📍 Outlet: ${outlet.name}\n`;
+                msg += `⏰ Shift: ${shift.name} (${shift.start} - ${shift.end})\n\n`;
+
+                if (isLate) {
+                    msg += `⚠️ Status: Late by ${lateMin} minute(s) for your scheduled shift.`;
+                } else {
+                    msg += `✅ Status: On Time. Great job, keep up the good work! 💪`;
+                }
 
                 const lateMsg = isLate
-                    ? `⏰ Late by ${lateMin} minute(s) (tolerance: ${this.presenceType === 'masuk' ? '15' : '30'} min)`
+                    ? `⏰ Late by ${lateMin} minute(s) (Tolerance: ${this.presenceType === 'masuk' ? '15' : '30'} mins)`
                     : '';
 
                 this.showPresenceModal(
                     isLate ? '⚠️' : '✅',
-                    'Presence Result',
+                    isLate ? 'Presence Warning' : 'Presence Success',
                     msg,
                     isLate,
                     lateMsg,
@@ -240,22 +270,14 @@ document.addEventListener('alpine:init', () => {
                 this.isSubmitting = false;
             } catch (e) {
                 console.error(e);
-                this.showPresenceModal('❌', 'Error', 'An error occurred. Please try again.');
+                this.showPresenceModal('❌', 'Error', 'A system error occurred. Please try again.');
                 this.isSubmitting = false;
             }
         },
 
+        // ── PERBAIKAN: goHome menggunakan window.location.assign ──
         goHome() {
-            const isHome = window.location.pathname.endsWith('index.html') ||
-                           window.location.pathname === '/' ||
-                           window.location.pathname === '';
-            if (isHome) {
-                const el = document.querySelector('#home');
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                this.showToast('🏠 Returned to main menu');
-            } else {
-                window.location.href = 'index.html';
-            }
+            window.location.assign('index.html');
         }
     }));
 
@@ -288,8 +310,8 @@ document.addEventListener('alpine:init', () => {
         updateClock() {
             const now = new Date();
             this.currentTime = String(now.getHours()).padStart(2, '0') + ':' +
-                               String(now.getMinutes()).padStart(2, '0') + ':' +
-                               String(now.getSeconds()).padStart(2, '0');
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
         },
 
         applyFilter() {
@@ -342,16 +364,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         goHome() {
-            const isHome = window.location.pathname.endsWith('index.html') ||
-                           window.location.pathname === '/' ||
-                           window.location.pathname === '';
-            if (isHome) {
-                const el = document.querySelector('#home');
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                this.showToast('🏠 Returned to main menu');
-            } else {
-                window.location.href = 'index.html';
-            }
+            window.location.assign('index.html');
         }
     }));
 
@@ -401,8 +414,8 @@ document.addEventListener('alpine:init', () => {
         updateClock() {
             const now = new Date();
             this.currentTime = String(now.getHours()).padStart(2, '0') + ':' +
-                               String(now.getMinutes()).padStart(2, '0') + ':' +
-                               String(now.getSeconds()).padStart(2, '0');
+                String(now.getMinutes()).padStart(2, '0') + ':' +
+                String(now.getSeconds()).padStart(2, '0');
         },
 
         loadDetail() {
@@ -459,16 +472,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         goHome() {
-            const isHome = window.location.pathname.endsWith('index.html') ||
-                           window.location.pathname === '/' ||
-                           window.location.pathname === '';
-            if (isHome) {
-                const el = document.querySelector('#home');
-                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                this.showToast('🏠 Returned to main menu');
-            } else {
-                window.location.href = 'index.html';
-            }
+            window.location.assign('index.html');
         }
     }));
 });
