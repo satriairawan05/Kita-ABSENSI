@@ -1,0 +1,259 @@
+/* ── Reset & Base ── */
+* {
+    box-sizing: border-box;
+}
+body {
+    background-color: #f5ecec;
+    font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+.bg-light-maroon {
+    background-color: #f5ecec;
+}
+
+/* ── Container ── */
+.app-container {
+    max-width: 100%;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(74, 10, 26, 0.25);
+}
+
+/* ── Header ── */
+.app-header {
+    background: linear-gradient(135deg, #4a0a1a, #7a2a3a);
+    padding: 1.25rem 1.5rem;
+    color: #fff;
+}
+.brand i {
+    font-size: 2rem;
+    color: #f0d0d0;
+}
+.clock {
+    background: rgba(0,0,0,0.2);
+    padding: 0.3rem 1rem;
+    border-radius: 40px;
+    font-weight: 500;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ── Form Elements ── */
+.form-label {
+    font-weight: 600;
+    color: #3d1a1a;
+}
+.form-select, .form-control {
+    border: 2px solid #dcc8c8;
+    border-radius: 14px;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    background: #fcf8f8;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-select:focus, .form-control:focus {
+    border-color: #7a2a3a;
+    box-shadow: 0 0 0 4px rgba(122, 42, 58, 0.15);
+}
+.form-control:read-only {
+    background: #f0e6e6;
+    border-color: #dcc8c8;
+}
+
+/* ── Shift Cards ── */
+.shift-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fcf8f8;
+    border: 2px solid #dcc8c8 !important;
+    border-radius: 14px;
+    padding: 0.7rem 0.5rem;
+}
+.shift-card:hover:not(.border-maroon) {
+    border-color: #c49595 !important;
+    background: #f5ecec;
+}
+.shift-card.border-maroon {
+    border-color: #7a2a3a !important;
+    background: #f5e0e0;
+    box-shadow: 0 0 0 3px rgba(122, 42, 58, 0.15);
+}
+
+/* ── Toggle Switch ── */
+.btn-toggle {
+    cursor: pointer;
+    transition: background 0.25s ease;
+    width: 54px;
+    height: 30px;
+    border: none;
+    border-radius: 40px;
+    background: #dcc8c8;
+    position: relative;
+}
+.btn-toggle .toggle-knob {
+    width: 24px;
+    height: 24px;
+    background: #fff;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+}
+.btn-toggle.bg-maroon .toggle-knob {
+    transform: translateX(24px);
+}
+.btn-toggle.bg-maroon {
+    background: #7a2a3a;
+}
+
+/* ── Buttons ── */
+.btn-maroon {
+    background: linear-gradient(145deg, #6a1a2a, #8a3040);
+    border: none;
+    transition: all 0.3s ease;
+    color: #ffffff;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 6px 20px rgba(122, 42, 58, 0.4);
+}
+.btn-maroon:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(122, 42, 58, 0.55);
+    background: linear-gradient(145deg, #7a2232, #9a3a4a);
+    color: #ffffff;
+}
+.btn-maroon:active:not(:disabled) {
+    transform: translateY(0px);
+    box-shadow: 0 4px 12px rgba(122, 42, 58, 0.3);
+}
+.btn-maroon:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-outline-maroon {
+    border: 2px solid #7a2a3a;
+    color: #7a2a3a;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+.btn-outline-maroon:hover {
+    background: #7a2a3a;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(122, 42, 58, 0.3);
+}
+
+/* ── Modal ── */
+.modal-content {
+    border: 2px solid #7a2a3a;
+    border-radius: 1.5rem;
+}
+
+/* ── Floating Home ── */
+.btn-floating-home {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4a0a1a, #7a2a3a);
+    color: #fff;
+    border: none;
+    box-shadow: 0 6px 20px rgba(74, 10, 26, 0.45);
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 1050;
+    cursor: pointer;
+}
+.btn-floating-home:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 30px rgba(74, 10, 26, 0.55);
+}
+@media (max-width: 576px) {
+    .btn-floating-home {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        bottom: 1.2rem;
+        right: 1.2rem;
+    }
+}
+
+/* ── Table ── */
+.table thead.table-maroon {
+    background: #7a2a3a;
+    color: #fff;
+}
+.table-hover tbody tr:hover {
+    background-color: #f5e0e0;
+}
+.table-success {
+    background-color: #e8d4d4 !important;
+}
+.table-warning {
+    background-color: #fff3cd !important;
+}
+.table-danger {
+    background-color: #f8d7da !important;
+}
+.badge.bg-warning {
+    color: #212529 !important;
+}
+.badge.bg-maroon {
+    background-color: #7a2a3a;
+    color: #fff;
+}
+.badge.bg-maroon-light {
+    background-color: #d4a0a0;
+    color: #3d1a1a;
+}
+
+/* ── Alert ── */
+.alert-warning {
+    background-color: #f5e0d0;
+    border-color: #dcc0b0;
+    color: #4a2a1a;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f5ecec;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #7a2a3a;
+    border-radius: 10px;
+    border: 1px solid #f5ecec;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #4a0a1a;
+}
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #7a2a3a #f5ecec;
+}
+
+/* ── Responsive ── */
+@media (max-width: 575.98px) {
+    .app-body { padding: 1.25rem !important; }
+    .brand span.fs-2 { font-size: 1.5rem !important; }
+    .brand i { font-size: 1.5rem !important; }
+    .clock { font-size: 0.85rem; }
+    .shift-card { padding: 0.5rem 0.3rem !important; }
+    .shift-card .fw-bold { font-size: 0.8rem; }
+    .btn-floating-home { width: 50px; height: 50px; font-size: 1.5rem; bottom: 1.2rem; right: 1.2rem; }
+}
+@media (min-width: 768px) {
+    .app-body { padding: 2rem 2.5rem !important; }
+}
