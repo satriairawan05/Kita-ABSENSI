@@ -250,7 +250,7 @@ document.addEventListener('alpine:init', () => {
                            window.location.pathname === '/' ||
                            window.location.pathname === '';
             if (isHome) {
-                const el = document.querySelector('.app-body');
+                const el = document.querySelector('#home');
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 this.showToast('🏠 Returned to main menu');
             } else {
@@ -346,7 +346,7 @@ document.addEventListener('alpine:init', () => {
                            window.location.pathname === '/' ||
                            window.location.pathname === '';
             if (isHome) {
-                const el = document.querySelector('.app-body');
+                const el = document.querySelector('#home');
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 this.showToast('🏠 Returned to main menu');
             } else {
@@ -463,7 +463,7 @@ document.addEventListener('alpine:init', () => {
                            window.location.pathname === '/' ||
                            window.location.pathname === '';
             if (isHome) {
-                const el = document.querySelector('.app-body');
+                const el = document.querySelector('#home');
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 this.showToast('🏠 Returned to main menu');
             } else {
