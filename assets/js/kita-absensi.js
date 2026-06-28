@@ -427,7 +427,7 @@ document.addEventListener('alpine:init', () => {
             { id: 3, name: 'Malam' }
         ],
 
-        // State Kalender
+        // ── State Calendar ──
         currentDate: null,
         calendarDays: [],
         dayStatusMap: {},
@@ -495,7 +495,13 @@ document.addEventListener('alpine:init', () => {
                 shift_name: shift ? shift.name : 'Unknown'
             };
 
-            // Tentukan batas bulan dari data history
+            // ── Build map status ──
+            this.dayStatusMap = {};
+            empData.history.forEach(log => {
+                this.dayStatusMap[log.date] = log.status;
+            });
+
+            // ── Tentukan batas bulan ──
             const history = empData.history;
             if (history.length > 0) {
                 const firstDate = new Date(history[0].date);
@@ -503,17 +509,11 @@ document.addEventListener('alpine:init', () => {
                 this.minDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
                 this.maxDate = new Date(lastDate.getFullYear(), lastDate.getMonth(), 1);
             } else {
-                this.minDate = new Date(2026, 4, 1); // Mei 2026
-                this.maxDate = new Date(2026, 5, 1); // Juni 2026
+                this.minDate = new Date(2026, 4, 1);
+                this.maxDate = new Date(2026, 5, 1);
             }
 
-            // Build map status
-            this.dayStatusMap = {};
-            empData.history.forEach(log => {
-                this.dayStatusMap[log.date] = log.status;
-            });
-
-            // Set currentDate ke bulan pertama data
+            // ── Set currentDate ke bulan pertama ──
             if (!this.currentDate || this.currentDate < this.minDate) {
                 this.currentDate = new Date(this.minDate);
             }
@@ -524,23 +524,22 @@ document.addEventListener('alpine:init', () => {
 
         renderCalendar() {
             if (!this.currentDate) return;
-
             const year = this.currentDate.getFullYear();
             const month = this.currentDate.getMonth();
 
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            const days = [];
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Empty days before month starts
+            const days = [];
+
+            // Kosongkan sebelum hari pertama
             for (let i = 0; i < firstDay; i++) {
                 days.push(null);
             }
 
-            // Days of the month
+            // Hari dalam bulan
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateObj = new Date(year, month, d);
                 const dateStr = dateObj.toISOString().split('T')[0];
@@ -578,12 +577,13 @@ document.addEventListener('alpine:init', () => {
         get currentMonthYear() {
             if (!this.currentDate) return '';
             const months = ['January', 'February', 'March', 'April', 'May', 'June',
-                            'July', 'August', 'September', 'October', 'November', 'December'];
+                'July', 'August', 'September', 'October', 'November', 'December'];
             return `${months[this.currentDate.getMonth()]} ${this.currentDate.getFullYear()}`;
         },
 
+        // ── Styling ──
         getDayClass(day) {
-            if (!day) return '';
+            if (!day) return 'empty-cell';
             if (!day.isPast) return 'future-date';
             if (!day.status) return 'bg-calendar-no-data';
             if (day.status === 'on-time') return 'bg-calendar-on-time';
