@@ -89,7 +89,7 @@ document.addEventListener('alpine:init', function() {
         return history;
     }
 
-    // ─── DATA DUMMY DENGAN STATUS TERAKHIR DARI HISTORY ──────────────
+    // ─── DATA DUMMY ─────────────────────────────────────────────────────
 
     function getDummyEmployee() {
         var history = generateHistoryForEmployee();
@@ -103,6 +103,23 @@ document.addEventListener('alpine:init', function() {
             status: lastLog ? lastLog.status : 'on-time',
             history: history
         };
+    }
+
+    // ─── DATA DUMMY MULTI KARYAWAN UNTUK REKAP ────────────────────────
+
+    function generateDummyEmployees() {
+        // Buat data 5 karyawan dengan outlet dan shift berbeda
+        var employees = [
+            { id: 1, nama: 'Deuwi Satriya Irawan', outlet_id: 1, shift_id: 2, status: 'on-time', total_absen: 12 },
+            { id: 2, nama: 'Budi Santoso', outlet_id: 1, shift_id: 1, status: 'late-5-15', total_absen: 8 },
+            { id: 3, nama: 'Siti Rahayu', outlet_id: 2, shift_id: 2, status: 'late-30-60', total_absen: 5 },
+            { id: 4, nama: 'Agus Wijaya', outlet_id: 2, shift_id: 1, status: 'on-time', total_absen: 15 },
+            { id: 5, nama: 'Dewi Lestari', outlet_id: 3, shift_id: 2, status: 'late-5-15', total_absen: 7 },
+            { id: 6, nama: 'Joko Widodo', outlet_id: 3, shift_id: 1, status: 'late-30-60', total_absen: 3 },
+            { id: 7, nama: 'Rina Anggraini', outlet_id: 1, shift_id: 2, status: 'on-time', total_absen: 10 },
+            { id: 8, nama: 'Andi Pratama', outlet_id: 2, shift_id: 3, status: 'late-5-15', total_absen: 6 },
+        ];
+        return employees;
     }
 
     // ─── COMPONENT: PRESENCE APP ──────────────────────────────────────
@@ -352,26 +369,43 @@ document.addEventListener('alpine:init', function() {
             },
 
             loadData: function() {
-                var emp = getDummyEmployee();
-                this.allData = [{
-                    id: emp.id,
-                    nama: emp.nama,
-                    outlet_id: emp.outlet_id,
-                    shift_id: emp.shift_id,
-                    total_absen: emp.total_absen,
-                    status: emp.status
-                }];
+                // Load data dummy multi karyawan
+                var dummyEmployees = generateDummyEmployees();
+                this.allData = dummyEmployees.map(function(emp) {
+                    return {
+                        id: emp.id,
+                        nama: emp.nama,
+                        outlet_id: parseInt(emp.outlet_id),
+                        shift_id: parseInt(emp.shift_id),
+                        total_absen: parseInt(emp.total_absen),
+                        status: emp.status
+                    };
+                });
+                // Reset filter saat load data
+                this.selectedOutletId = null;
+                this.selectedShiftId = null;
                 this.applyFilter();
             },
 
             applyFilter: function() {
-                var filtered = this.allData;
-                if (this.selectedOutletId) {
-                    filtered = filtered.filter(function(e) { return e.outlet_id === this.selectedOutletId; }.bind(this));
+                var filtered = this.allData.slice(); // copy array
+
+                // Filter by outlet (jika selectedOutletId tidak null)
+                if (this.selectedOutletId !== null && this.selectedOutletId !== '') {
+                    var outletId = parseInt(this.selectedOutletId);
+                    filtered = filtered.filter(function(e) {
+                        return parseInt(e.outlet_id) === outletId;
+                    }.bind(this));
                 }
-                if (this.selectedShiftId) {
-                    filtered = filtered.filter(function(e) { return e.shift_id === this.selectedShiftId; }.bind(this));
+
+                // Filter by shift (jika selectedShiftId tidak null)
+                if (this.selectedShiftId !== null && this.selectedShiftId !== '') {
+                    var shiftId = parseInt(this.selectedShiftId);
+                    filtered = filtered.filter(function(e) {
+                        return parseInt(e.shift_id) === shiftId;
+                    }.bind(this));
                 }
+
                 this.filteredData = filtered;
             },
 
@@ -381,6 +415,18 @@ document.addEventListener('alpine:init', function() {
                 if (this.selectedOutletId) params.append('outlet', this.selectedOutletId);
                 if (this.selectedShiftId) params.append('shift', this.selectedShiftId);
                 window.location.href = 'detail.html?' + params.toString();
+            },
+
+            // Helper untuk mengambil nama outlet berdasarkan id
+            getOutletName: function(outletId) {
+                var found = this.outlets.find(function(o) { return o.id === parseInt(outletId); });
+                return found ? found.name : '-';
+            },
+
+            // Helper untuk mengambil nama shift berdasarkan id
+            getShiftName: function(shiftId) {
+                var found = this.shifts.find(function(s) { return s.id === parseInt(shiftId); });
+                return found ? found.name : '-';
             },
 
             getRowClass: function(status) {
