@@ -128,11 +128,11 @@
                         <div class="mb-4">
                             <label class="form-label fw-semibold" style="color: #3d1a1a;">Photo (optional)</label>
                             <div class="d-flex flex-wrap align-items-center gap-3">
-                                <input type="file" id="photoInput" accept="image/*" capture="environment"
+                                <input type="file" id="photoInput" accept="image/png, image/jpeg, image/jpg"
                                     x-ref="photoInput" @change="handlePhoto($event)" class="d-none" />
                                 <button type="button" class="btn btn-outline-maroon rounded-pill px-4"
                                     @click="$refs.photoInput.click()">
-                                    <i class="bi bi-camera me-2"></i> Take Photo
+                                    <i class="bi bi-upload me-2"></i> Upload Photo
                                 </button>
                                 <div x-show="photoPreview"
                                     class="position-relative rounded-4 overflow-hidden border border-2"
@@ -143,8 +143,8 @@
                                         @click="photoPreview = null; photoFile = null"></button>
                                 </div>
                             </div>
-                            <div class="form-text" x-show="!photoPreview">Click the button to capture photo from camera
-                            </div>
+                            <div class="form-text" x-show="!photoPreview">Click the button to upload photo from gallery
+                                (JPG, PNG)</div>
                         </div>
 
                         <!-- Submit -->
